@@ -17,8 +17,6 @@
 			Cull Off
 
 			CGPROGRAM
-// Upgrade NOTE: excluded shader from DX11 because it uses wrong array syntax (type[size] name)
-#pragma exclude_renderers d3d11
 			#pragma vertex vert
 			#pragma fragment frag
 			// make fog work
@@ -47,7 +45,10 @@
 			float angleFreq[10];
 			float waveLength[10];
 			float amplitude[10];
-			float Fresnel_0[10];
+			float stepness[10];
+
+			float4 waveDir[10];
+			float Fresnel_0;
 			int waveCount;
 
 			float4 _Color;
@@ -56,18 +57,25 @@
 			{
 				v2f o;
 
-				float y = sin(UNITY_TWO_PI * angleFreq * _Time.y + UNITY_TWO_PI / waveLength * v.vertex.x);
-				float cosY = cos(UNITY_TWO_PI * angleFreq * _Time.y + UNITY_TWO_PI / waveLength * v.vertex.x);
+				
 
-				float4 updateVert = float4(v.vertex.x, amplitude * y, v.vertex.z, v.vertex.w);
+				float4 updateVert = float4(v.vertex.x, 0, v.vertex.z, v.vertex.w);
+
+				for (int i = 0; i < waveCount; i++)
+				{
+					updateVert.x += stepness[i] * amplitude[i] * waveDir[i].x * cos(dot(waveDir[i].xy, v.vertex.xz) * UNITY_TWO_PI / waveLength[i] + UNITY_TWO_PI * angleFreq[i] * _Time.y);
+					updateVert.z += stepness[i] * amplitude[i] * waveDir[i].y * cos(dot(waveDir[i].xy, v.vertex.xz) * UNITY_TWO_PI / waveLength[i] + UNITY_TWO_PI * angleFreq[i] * _Time.y);
+					updateVert.y += amplitude[i] * sin(dot(waveDir[i].xy, v.vertex.xz) * UNITY_TWO_PI / waveLength[i] + UNITY_TWO_PI * angleFreq[i] * _Time.y);
+				}
+
 
 				o.pos = UnityObjectToClipPos(updateVert);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				o.color = v.color;
-				
-				float3 normal = float3(-cosY * amplitude, 1, 0);
-				o.normal = UnityObjectToWorldNormal(normal);
+							
+				//o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 				o.worldPos = mul(unity_ObjectToWorld, updateVert);
+
 
 				return o;
 			}
@@ -79,8 +87,21 @@
 				//return col;
 				half4 col = half4(i.color, 1);
 
-				float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);
-				float3 normal = i.normal;
+				float3 normal = float3(0, 1, 0);
+
+				for (int j = 0; j < waveCount; j++)
+				{
+					normal.x -= waveDir[j].x * stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
+						cos(dot(waveDir[j].xy, i.worldPos.xz) * UNITY_TWO_PI / waveLength[j] + UNITY_TWO_PI * angleFreq[j] * _Time.y);
+
+					normal.z -= waveDir[j].y * stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
+						cos(dot(waveDir[j].xy, i.worldPos.xz) * UNITY_TWO_PI / waveLength[j] + UNITY_TWO_PI * angleFreq[j] * _Time.y);
+
+					normal.y -= stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
+						sin(dot(waveDir[j].xy, i.worldPos.xz) * UNITY_TWO_PI / waveLength[j] + UNITY_TWO_PI * angleFreq[j] * _Time.y);
+				}
+
+				/*float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);
 				float3 lightDir = normalize(WorldSpaceLightDir(i.worldPos));
 
 				float3 halfDir = normalize( lightDir + viewDir );
@@ -94,7 +115,9 @@
 
 				col.rgb = _Color.rgb + F * _LightColor0.rgb;
 				col.a = _Color.a + F.r;
-				col.rgb = F * _LightColor0.rgb;
+				col.rgb = F * _LightColor0.rgb;*/
+				normal = saturate(normal);
+				col.rgb = normal;
 				return col;
 			}
 			ENDCG

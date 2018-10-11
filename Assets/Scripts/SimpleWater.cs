@@ -74,11 +74,16 @@ public class SimpleWater : MonoBehaviour {
     void Update () {
         UpdatePara();
 	}
+    
+    public float Fresnel_0;
 
     public List<float> angleFreq = new List<float>();
     public List<float> waveLength = new List<float>();
     public List<float> amplitude = new List<float>();
-    public List<float> Fresnel_0 = new List<float>();
+    public List<float> stepness = new List<float>();
+    public List<Vector4> waveDir = new List<Vector4>();
+
+
 
     MaterialPropertyBlock tempMPB;
     void UpdatePara()
@@ -92,9 +97,13 @@ public class SimpleWater : MonoBehaviour {
         tempMPB.SetFloatArray("angleFreq", angleFreq);
         tempMPB.SetFloatArray("waveLength", waveLength);
         tempMPB.SetFloatArray("amplitude", amplitude);
-        tempMPB.SetFloatArray("Fresnel_0", Fresnel_0);
+        tempMPB.SetFloatArray("stepness", stepness);
+
+        tempMPB.SetVectorArray("waveDir", waveDir);
 
         tempMPB.SetFloat("waveCount", angleFreq.Count);
+        tempMPB.SetFloat("Fresnel_0", Fresnel_0);    
+
 
 
 
