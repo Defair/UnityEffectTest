@@ -52,7 +52,7 @@ public class SimpleWater : MonoBehaviour {
                 if(i != quadRowCount && j != quadColumnCount)
                 {
                     int vertIndex = (i * (quadColumnCount + 1) + j);
-                    int triVertIndex = (i * (quadColumnCount + 1) * 6);
+                    int triVertIndex = (i * quadColumnCount + j) * 6;
 
                     triangles[triVertIndex] = vertIndex;
                     triangles[triVertIndex + 1] = vertIndex + quadColumnCount + 1;
@@ -60,7 +60,7 @@ public class SimpleWater : MonoBehaviour {
 
                     triangles[triVertIndex + 3] = vertIndex + quadColumnCount + 1;
                     triangles[triVertIndex + 4] = vertIndex + quadColumnCount + 2;
-                    triangles[triVertIndex] = vertIndex + 1;
+                    triangles[triVertIndex + 5] = vertIndex + 1;
                 }
             }
         }
@@ -75,19 +75,28 @@ public class SimpleWater : MonoBehaviour {
         UpdatePara();
 	}
 
-    public float angleFreq = 1;
-    public float waveLength = 1;
-    public float amplitude = 1;
-    public float Fresnel_0 = 0.020320f;
+    public List<float> angleFreq = new List<float>();
+    public List<float> waveLength = new List<float>();
+    public List<float> amplitude = new List<float>();
+    public List<float> Fresnel_0 = new List<float>();
 
     MaterialPropertyBlock tempMPB;
     void UpdatePara()
     {
         tempMPB.Clear();
-        tempMPB.SetFloat("angleFreq", angleFreq);
-        tempMPB.SetFloat("waveLength", waveLength);
-        tempMPB.SetFloat("amplitude", amplitude);
-        tempMPB.SetFloat("Fresnel_0", Fresnel_0);
+        //tempMPB.SetFloat("angleFreq", angleFreq);
+        //tempMPB.SetFloat("waveLength", waveLength);
+        //tempMPB.SetFloat("amplitude", amplitude);
+        //tempMPB.SetFloat("Fresnel_0", Fresnel_0);
+
+        tempMPB.SetFloatArray("angleFreq", angleFreq);
+        tempMPB.SetFloatArray("waveLength", waveLength);
+        tempMPB.SetFloatArray("amplitude", amplitude);
+        tempMPB.SetFloatArray("Fresnel_0", Fresnel_0);
+
+        tempMPB.SetFloat("waveCount", angleFreq.Count);
+
+
 
         mr.SetPropertyBlock(tempMPB);
     }
