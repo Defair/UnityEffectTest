@@ -14,7 +14,7 @@
 		{
 			Blend SrcAlpha OneMinusSrcAlpha
 			ZWrite Off
-			Cull Off
+			//Cull Off
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -91,33 +91,41 @@
 
 				for (int j = 0; j < waveCount; j++)
 				{
-					normal.x -= waveDir[j].x * stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
+					normal.x -= waveDir[j].y * stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
 						cos(dot(waveDir[j].xy, i.worldPos.xz) * UNITY_TWO_PI / waveLength[j] + UNITY_TWO_PI * angleFreq[j] * _Time.y);
 
-					normal.z -= waveDir[j].y * stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
+					normal.z -= waveDir[j].x * stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
 						cos(dot(waveDir[j].xy, i.worldPos.xz) * UNITY_TWO_PI / waveLength[j] + UNITY_TWO_PI * angleFreq[j] * _Time.y);
 
 					normal.y -= stepness[j] * UNITY_TWO_PI / waveLength[j] * amplitude[j] *
 						sin(dot(waveDir[j].xy, i.worldPos.xz) * UNITY_TWO_PI / waveLength[j] + UNITY_TWO_PI * angleFreq[j] * _Time.y);
 				}
 
-				/*float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);
-				float3 lightDir = normalize(WorldSpaceLightDir(i.worldPos));
+				normal = normalize(normal);
 
+
+
+				float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);
+				float3 lightDir = normalize(WorldSpaceLightDir(i.worldPos));
 				float3 halfDir = normalize( lightDir + viewDir );
+				float3 RefDir = normalize(2 * dot(lightDir, normal) * normal - lightDir);
 
 
 				float VdotH = saturate(dot(viewDir, halfDir));
-				float LdotH = saturate(dot(lightDir, halfDir));
-
+				//float LdotH = saturate(dot(lightDir, halfDir));
+				float HdotN = saturate(dot(halfDir, normal));
 
 				float3 F = FresnelTerm(float3(Fresnel_0, Fresnel_0, Fresnel_0), VdotH);
+				float specular = F * _LightColor0.rgb * pow(HdotN, 40);
 
-				col.rgb = _Color.rgb + F * _LightColor0.rgb;
+				col.rgb = _Color.rgb + specular;
 				col.a = _Color.a + F.r;
-				col.rgb = F * _LightColor0.rgb;*/
-				normal = saturate(normal);
-				col.rgb = normal;
+
+				//col.rgb = specular;
+				//col.a = 1;
+				//normal = saturate(normal);
+				//col.rgb = normal;
+				//col.g = 0;
 				return col;
 			}
 			ENDCG
